@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="/Scripts/jquery-3.6.3.min.js"></script>
+    <title>jQuery</title>
+
+    <script type="text/javascript">
+        var API_URL = "/api/taskservice/";
+        function clearStatus() {
+            $("#lblError").html('');
+        }
+        function clearField() {
+            $("input[type=text]").val('');
+        }
+
+        function displayData() {
+            $("#lsTasks").html('');
+
+            $.getJSON(API_URL, function (data) {
+                $.each(data, function (key, val) {
+                    var str = val.id + ", " + val.title;
+                    $("<li />", { html: str }).appendTo("#lsTasks");
+                })
+            });
+        }
+
+        $(document).ready(function () {
+            displayData();
+
+            $("#btnAdd").click(function () {
+                clearStatus();
+                var title = $("#title").val();
+                $.ajax({
+                    url: API_URL,
+                    cache: false,
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    data: "{title : \"" + title + "\"}",
+                    statusCode: {
+                        201: function (data) {
+                            var str = data.id + ", " + data.title;
+                            $("<li />", { html: str }).appendTo("#lsTasks");
+                        }
+                    }
+
+                });
+
+                clearField();
+            });
+
+            $("#btnFind").click(function () {
+                clearStatus();
+
+                var id = $("#id").val();
+                $.getJSON(API_URL + id, function (data) {
+                    $("#title").val(data.title);
+                }).fail(function (xhr, sts, err) {
+                    $("#lblError").html('error ' + err);
+                });
+
+            });
+
+            $("#btnUpdate").click(function () {
+                clearStatus();
+
+                var id = $("#id").val();
+                var title = $("#title").val();
+                $.ajax({
+                    url: API_URL + id,
+                    cache: false,
+                    type: 'PUT',
+                    contentType: 'application/json; charset=utf-8',
+                    data: "{id : \"" + id + "\", title : \"" + title + "\"}",
+                    success: function () {
+                        displayData();
+                    }
+
+                }).fail(function (xhr, sts, err) {
+                    $("#lblError").html('error ' + err);
+                });
+
+                clearField();
+            });
+
+            $("#btnDelete").click(function () {
+                clearStatus();
+                var id = $("#id").val();
+                $.ajax({
+                    url: API_URL + id,
+                    cache: false,
+                    type: 'Delete',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function () {
+                        displayData();
+                    }
+
+                }).fail(function (xhr, sts, err) {
+                    $("#lblError").html('error ' + err);
+                });
+
+                clearField();
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h2>Task List</h2>
+    <div>
+        <h3>Task List</h3>
+        <ul id="lsTasks"></ul>
+    </div>
+    <br />
+    <div>
+        <h3>Task Detail</h3>
+        <div>
+            번호 : <input type="text" id="id" name="id" />
+            <br />
+            제목 : <input type="text" id="title" name="title" />
+        </div>
+        <div>
+            <input type="button" name="btnAdd" id="btnAdd" value="추가" />
+            <input type="button" name="btnFind" id="btnFind" value="검색" />
+            <input type="button" name="btnUpdate" id="btnUpdate" value="수정" />
+            <input type="button" name="btnDelete" id="btnDelete" value="삭제" />
+        </div>
+        <div>
+            <p id="lblError" style="color:red"></p>
+        </div>
+    </div>
+</body>
+</html>
